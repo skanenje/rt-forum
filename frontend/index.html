@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Community Forum</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav id="main-nav">
+            <div id="user-info">
+                <span id="logged-user"></span>
+                <button id="logout-btn" class="btn-secondary">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Authentication Container -->
+        <div id="auth-container">
+            <div class="form-wrapper">
+                <div class="form-toggle">
+                    <button id="show-login">Login</button>
+                    <button id="show-register">Register</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form">
+                    <h2>Welcome Back</h2>
+                    <div id="login-errors" class="error-container"></div>
+                    <input type="text" name="identifier" placeholder="Nickname or Email" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+
+                <!-- Registration Form -->
+                <form id="register-form" class="auth-form" style="display:none;">
+                    <h2>Create Account</h2>
+                    <div id="register-errors" class="error-container"></div>
+                    <div class="form-grid">
+                        <input type="text" name="first_name" placeholder="First Name" required>
+                        <input type="text" name="last_name" placeholder="Last Name" required>
+                        <input type="text" name="nickname" placeholder="Nickname" required>
+                        <input type="email" name="email" placeholder="Email" required>
+                        <input type="password" name="password" placeholder="Password" required>
+                        <input type="number" name="age" placeholder="Age" required min="13">
+                        <select name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Register</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Forum Content -->
+        <div id="forum-container" style="display:none;">
+            <!-- Sidebar for Online Users and Chats -->
+            <aside id="sidebar">
+                <div id="online-users-section">
+                    <h3>Online Users</h3>
+                    <div id="online-users"></div>
+                </div>
+                <div id="chat-section">
+                    <h3>Private Messages</h3>
+                    <div id="active-chats"></div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main id="main-content">
+                <!-- Post Creation -->
+                <section id="post-creation">
+                    <form id="post-form">
+                        <input type="text" name="title" placeholder="Post Title" required>
+                        <select name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="general">General</option>
+                            <option value="technology">Technology</option>
+                            <option value="gaming">Gaming</option>
+                            <option value="music">Music</option>
+                        </select>
+                        <textarea name="content" placeholder="What's on your mind?" required></textarea>
+                        <button type="submit" class="btn-primary">Create Post</button>
+                    </form>
+                </section>
+
+                <!-- Posts Feed -->
+                <section id="posts-feed">
+                    <h2>Recent Posts</h2>
+                    <div id="posts-container"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
