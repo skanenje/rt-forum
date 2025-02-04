@@ -60,6 +60,14 @@ func createTables() {
         FOREIGN KEY(sender_id) REFERENCES users(id),
         FOREIGN KEY(receiver_id) REFERENCES users(id)
     );
+     CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    );
     `
     _, err := DB.Exec(query)
     if err != nil {

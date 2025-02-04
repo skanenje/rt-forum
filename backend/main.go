@@ -4,17 +4,18 @@ import (
     "fmt"
     "log"
     "net/http"
-
-    "github.com/gorilla/websocket"
     "ramfo/backend/models"
     "ramfo/backend/routes"
     "ramfo/backend/ws"
 )
 
-var upgrader = websocket.Upgrader{
-    CheckOrigin: func(r *http.Request) bool {
-        return true // Allow all origins (for simplicity; you can restrict this in production)
-    },
+type cacheControlHandler struct {
+    handler http.Handler
+}
+
+func (h *cacheControlHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Cache-Control", "max-age=3600, must-revalidate")
+    h.handler.ServeHTTP(w, r)
 }
 
 func main() {
@@ -28,9 +29,11 @@ func main() {
     http.HandleFunc("/api/create-post", routes.CreatePost)
     http.HandleFunc("/ws/chat", ws.ChatHandler)
 
-    // Serve static files (HTML, CSS, JS)
+    // Serve static files (HTML, CSS, JS, Source Maps)
     fs := http.FileServer(http.Dir("../frontend"))
-    http.Handle("/", fs)
+    staticHandler := &cacheControlHandler{handler: fs}
+    http.Handle("/", staticHandler)
+    http.Handle("/static/", http.StripPrefix("/static/", staticHandler))
 
     // Start the server
     port := ":8080"

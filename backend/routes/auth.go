@@ -2,6 +2,8 @@ package routes
 
 import (
 	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -137,6 +139,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Read the body once
+    body, err := io.ReadAll(r.Body)
+    if err != nil {
+        log.Printf("Error reading body: %v", err)
+        http.Error(w, "Error reading request body", http.StatusBadRequest)
+        return
+    }
+    log.Printf("Received body: %s", string(body))
+
     var user struct {
         Nickname  string `json:"nickname"`
         Email     string `json:"email"`
@@ -147,14 +158,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
         LastName  string `json:"last_name"`
     }
 
-    // Decode request body
-    err := json.NewDecoder(r.Body).Decode(&user)
+    // Use the body we already read
+    err = json.Unmarshal(body, &user)
     if err != nil {
+        log.Printf("Error parsing JSON: %v", err)
         http.Error(w, "Invalid request body", http.StatusBadRequest)
         return
     }
 
-    // Validate user data
+    // Rest of the function remains the same...
     validationErrors := validateRegistration(user)
     if len(validationErrors) > 0 {
         w.WriteHeader(http.StatusBadRequest)
@@ -186,6 +198,5 @@ func Register(w http.ResponseWriter, r *http.Request) {
     })
 
     w.WriteHeader(http.StatusCreated)
-    // Return a proper JSON response
     json.NewEncoder(w).Encode(map[string]string{"message": "Registration successful"})
 }

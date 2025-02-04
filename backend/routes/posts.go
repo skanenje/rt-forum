@@ -4,13 +4,32 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"ramfo/backend/models"
 )
 
+// posts.go - Update the CreatePost function
 func CreatePost(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get session token from Authorization header
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	sessionToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+	// Verify session token and get user ID
+	var userID int
+	err := models.DB.QueryRow("SELECT user_id FROM sessions WHERE token = ?", sessionToken).Scan(&userID)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -20,15 +39,14 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		Category string `json:"category"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&post)
+	err = json.NewDecoder(r.Body).Decode(&post)
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	session := r.Cookies()[0].Value
 	query := `INSERT INTO posts (user_id, title, content, category) VALUES (?, ?, ?, ?)`
-	_, err = models.DB.Exec(query, session, post.Title, post.Content, post.Category)
+	_, err = models.DB.Exec(query, userID, post.Title, post.Content, post.Category)
 	if err != nil {
 		http.Error(w, "Error creating post", http.StatusInternalServerError)
 		return

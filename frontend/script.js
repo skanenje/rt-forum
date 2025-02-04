@@ -18,21 +18,67 @@ document.addEventListener('DOMContentLoaded', () => {
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
     });
+    const postForm = document.getElementById('post-form');
+    if (postForm) {
+        postForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent form from submitting normally
+            
+            const formData = new FormData(postForm);
+            const postData = {
+                title: formData.get('title'),
+                content: formData.get('content'),
+                category: formData.get('category')
+            };
 
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(postData)
+                });
+
+                if (response.ok) {
+                    // Clear form
+                    postForm.reset();
+                    // Reload posts
+                    loadPosts();
+                } else if (response.status === 401) {
+                    // Session expired - show login form
+                    document.getElementById('auth-container').style.display = 'flex';
+                    document.getElementById('forum-container').style.display = 'none';
+                } else {
+                    alert('Error creating post. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error creating post:', error);
+                alert('Error creating post. Please try again.');
+            }
+        });
+        }
     // Authentication Handling
     async function handleRegistration(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
+        const age = Number(data.age);
+        if (isNaN(age) || age < 13) {
+            document.getElementById('register-errors').innerHTML = 
+                '<p>Please enter a valid age (must be 13 or older)</p>';
+            return;
+        }
+        data.age = age;
         const registerErrors = document.getElementById('register-errors');
-        
+        // Add this before the fetch call
+        console.log('Sending data:', JSON.stringify(data, null, 2));
         try {
             const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-
+    
             const result = await response.json();
             
             if (response.ok) {
@@ -48,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
             registerErrors.innerHTML = '<p>Network error. Please try again.</p>';
         }
     }
-
     async function handleLogin(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
@@ -65,6 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             
             if (result.success) {
+                // Store the session token
+                localStorage.setItem('sessionToken', result.session_token);
+                
                 // Hide auth, show forum
                 authContainer.style.display = 'none';
                 forumContainer.style.display = 'grid';
@@ -86,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             loginErrors.innerHTML = '<p>Network error. Please try again.</p>';
         }
     }
-
     function initializeForumFeatures(userInfo) {
         // WebSocket initialization
         const socket = new WebSocket('ws://localhost:8080/ws/chat');
